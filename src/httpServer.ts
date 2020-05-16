@@ -26,7 +26,7 @@ export default class HttpServer extends EventEmitter {
   private createServer() {
     const httpServer = http.createServer(async (req, res) => {
       const request = new Request(req)
-      // Instantiate an empty response since we have no server response yet
+      // At this request phase, `res` is not populated yet
       const response = new Response()
 
       try {
@@ -106,7 +106,7 @@ export default class HttpServer extends EventEmitter {
       headers: request.httpHeaders
     }
 
-    // See README to understand why we may have HTTPS requests here
+    // See resources/flow-diagram.png to understand why we may have HTTPS requests here
     const httpSource = request.protocol === "https:" ? https : http
 
     const forwardRequest = httpSource.request(options, responseHandler)
