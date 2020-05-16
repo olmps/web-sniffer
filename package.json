@@ -1,0 +1,22 @@
+{
+  "name": "proxier",
+  "version": "1.0.0",
+  "description": "TODO",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel src --out-dir lib --optional runtime",
+    "start": "tsc && node dist/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^13.13.5",
+    "babel-cli": "^6.26.0",
+    "typescript": "^3.9.2"
+  },
+  "dependencies": {
+    "@types/pem": "^1.9.5",
+    "pem": "^1.14.4"
+  }
+}
