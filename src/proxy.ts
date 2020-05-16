@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import * as net from 'net'
 
 import HttpServer from './httpServer'
 import HttpsServer from './httpsServer'
@@ -13,10 +14,10 @@ type InterceptHandler = (request: IRequest, response: IResponse) => Promise<AnyC
 
 export default class Proxy extends EventEmitter {
 
-  httpServer: HttpServer
-  httpsServer?: HttpsServer
-  interceptors: Map<string, InterceptHandler>
-  options: ProxyOptions
+  private httpServer: HttpServer
+  private httpsServer?: HttpsServer
+  private interceptors: Map<string, InterceptHandler>
+  private options: ProxyOptions
 
   constructor(options: ProxyOptions) {
     super()
@@ -24,9 +25,32 @@ export default class Proxy extends EventEmitter {
     this.interceptors = new Map<string, InterceptHandler>()
     this.httpServer = new HttpServer((phase, request, response) => this.onIntercept(phase, request, response))
     if (options.certAuthority !== undefined) {
-      this.httpsServer = new HttpsServer(options.certAuthority, this.httpServer.server)
+      const httpAddressGetter = () => { return this.httpServer.address }
+      this.httpsServer = new HttpsServer(options.certAuthority, httpAddressGetter)
+      this.bridgeProxies()
     }
     this.forwardEvents()
+  }
+
+  /**
+   * Creates a bridge between HTTPS and HTTP proxies.
+   * 
+   * This lets the HTTPS requests be handled by HttpsServer and
+   * HTTP requests be handled by HttpServer.
+   */
+  private bridgeProxies() {
+    this.httpServer.on('connect', (request, clientSocket, _) => {
+      let addr = this.httpsServer!.address
+      // Creates TCP connection to HTTPS server
+      let serverSocket = net.connect(addr.port, addr.address, () => {
+        const successConnection = Buffer.from(`HTTP/${request.httpVersion} 200 Connection Established\r\n\r\n`, 'utf-8')
+        // Tell the client (the HTTP server) that the connection was successfully established
+        clientSocket.write(successConnection)
+        clientSocket
+          .pipe(serverSocket)
+          .pipe(clientSocket)
+      })
+    })
   }
 
   private forwardEvents() {
