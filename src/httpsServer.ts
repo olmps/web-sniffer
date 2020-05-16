@@ -34,7 +34,8 @@ export default class HttpsServer extends EventEmitter {
     const server = https.createServer({ key, cert, SNICallback: certificateCallback }, (req, res) => {
       const fullUrl = `https://${req.headers.host}${req.url}`
 
-      // Forward this HTTPS request to local HTTP server. See README to understand why this is made
+      // Forward this HTTPS request to local HTTP server.
+      // See resources/flow-diagram.png to understand why this is made
       let toServer = http.request({
         host: 'localhost',
         port: httpAddressGetter().port,

@@ -17,11 +17,9 @@ export default class Proxy extends EventEmitter {
   private httpServer: HttpServer
   private httpsServer?: HttpsServer
   private interceptors: Map<string, InterceptHandler>
-  private options: ProxyOptions
 
   constructor(options: ProxyOptions) {
     super()
-    this.options = options
     this.interceptors = new Map<string, InterceptHandler>()
     this.httpServer = new HttpServer((phase, request, response) => this.onIntercept(phase, request, response))
     if (options.certAuthority !== undefined) {
