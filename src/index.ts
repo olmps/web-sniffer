@@ -9,3 +9,11 @@ const options = new ProxyOptions({ cert, key })
 
 const proxy = new Proxy(options)
 proxy.listen(8888)
+
+proxy.intercept({ phase: 'request' }, (request, response) => {
+  return Promise.resolve(request)
+})
+
+proxy.intercept({ phase: 'response' }, (request, response) => {
+  return Promise.resolve(response)
+})

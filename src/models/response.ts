@@ -1,3 +1,6 @@
+import { IncomingMessage } from "http"
+import RequestModel from "./request-model"
+
 export interface IResponse {
   statusCode: number
   headers: Map<string, string>
@@ -5,14 +8,16 @@ export interface IResponse {
   [key: string]: any
 }
 
-export class Response implements IResponse {
+export class Response extends RequestModel implements IResponse {
   statusCode: number
-  headers: Map<string, string>
-  body: string
 
-  constructor(statusCode: number, headers: Map<string, string>, body: string) {
-    this.statusCode = statusCode
-    this.headers = headers
-    this.body = body
+  constructor() {
+    super()
+    this.statusCode = 200
+  }
+
+  populate(httpResponse: IncomingMessage) {
+    this.statusCode = httpResponse.statusCode!
+    this.headers = this.formattedHeaders(httpResponse.headers)
   }
 }
