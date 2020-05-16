@@ -11,46 +11,44 @@ type CertificateCreationCallback = (error: any | null, secureContext: tls.Secure
 
 export default class HttpsServer extends EventEmitter {
 
-  certificateHandler: CertificateHandler
-  httpServer: http.Server
-  server: https.Server
+  private certificateHandler: CertificateHandler
+  private server: https.Server
 
-  constructor(certAuthority: CertAuthority, httpServer: http.Server) {
+  get address(): net.AddressInfo {
+    return this.server.address() as net.AddressInfo
+  }
+
+  constructor(certAuthority: CertAuthority, httpAddressGetter: () => net.AddressInfo) {
     super()
     this.certificateHandler = new CertificateHandler(certAuthority.cert, certAuthority.key)
-    this.httpServer = httpServer
-    this.server = this.startHttpsServer()
+    this.server = this.startHttpsServer(httpAddressGetter)
   }
   
-  startHttpsServer() {
+  startHttpsServer(httpAddressGetter: () => net.AddressInfo) {
     const { rootCertKey: key, rootCert: cert } = this.certificateHandler
-    this.bridgeHttpConnection()
 
     const certificateCallback = (serverName: string, callback: CertificateCreationCallback) => {
       this.certificateHandler.getSecureTlsConnection(serverName, callback)
     }
     
-    const server = https.createServer({ key, cert, SNICallback: certificateCallback }, (fromClient, toClient) => {
+    const server = https.createServer({ key, cert, SNICallback: certificateCallback }, (req, res) => {
+      const fullUrl = `https://${req.headers.host}${req.url}`
 
-      const shp = 'https://' + fromClient.headers.host
-      const fullUrl = shp + fromClient.url
-      const destination = this.httpServer.address() as net.AddressInfo
-
-      // Redirect this HTTPS request to `httpServer` so it can handle it.
+      // Forward this HTTPS request to local HTTP server. See README to understand why this is made
       let toServer = http.request({
         host: 'localhost',
-        port: destination.port,
-        method: fromClient.method,
+        port: httpAddressGetter().port,
+        method: req.method,
         path: fullUrl,
-        headers: fromClient.headers,
+        headers: req.headers,
       }, fromServer => {
-        toClient.writeHead(fromServer.statusCode!, fromServer.headers)
-        fromServer.pipe(toClient)
+        res.writeHead(fromServer.statusCode!, fromServer.headers)
+        fromServer.pipe(res)
         toServer.end()
       })
       
       toServer.on('error', (err) => this.emit('error', err))
-      fromClient.pipe(toServer)
+      req.pipe(toServer)
     })
 
     server.on('error', (error: any) => this.emit('error', error))
@@ -64,20 +62,5 @@ export default class HttpsServer extends EventEmitter {
 
   close() {
     this.server.close()
-  }
-
-  private bridgeHttpConnection() {
-    this.httpServer.on('connect', (request, clientSocket, head) => {
-      let addr = this.server.address() as net.AddressInfo
-      // Creates TCP connection to HTTPS server
-      let serverSocket = net.connect(addr.port, addr.address, () => {
-        const successConnection = Buffer.from(`HTTP/${request.httpVersion} 200 Connection Established\r\n\r\n`, 'utf-8')
-        // Tell the client (the HTTP server) that the connection was successfully established
-        clientSocket.write(successConnection)
-        clientSocket
-          .pipe(serverSocket)
-          .pipe(clientSocket)
-      })
-    })
   }
 }
