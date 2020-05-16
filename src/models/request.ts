@@ -1,4 +1,4 @@
-import { IncomingHttpHeaders, IncomingMessage } from "http"
+import { IncomingMessage } from "http"
 import * as url from 'url'
 import RequestModel from "./request-model"
 
@@ -25,9 +25,11 @@ export class Request extends RequestModel implements IRequest {
   get port(): number { return Number(url.parse(this.url).port) }
 
   constructor(httpRequest: IncomingMessage) {
-    super(httpRequest.headers)
-    this.method = httpRequest.method!
-    this.url = httpRequest.url!
-    this.query = url.parse(httpRequest.url!, true)
+    const { httpVersion, headers, method, url: requestUrl } = httpRequest
+
+    super(httpVersion, headers)
+    this.method = method!
+    this.url = requestUrl!
+    this.query = url.parse(requestUrl!, true)
   }
 }

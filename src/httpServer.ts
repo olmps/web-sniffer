@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events'
-import * as url from 'url'
 import * as http from 'http'
 import * as https from 'https'
 import { IRequest, IResponse, Request, Response } from './models'
+import ProxyError, { ErrorType } from './errors/proxy-error'
 
 type AnyContent = IRequest | IResponse
 type InterceptHandler = (phase: string, request: IRequest, response: IResponse) => Promise<AnyContent>
@@ -25,8 +25,8 @@ export default class HttpServer extends EventEmitter {
 
       const modifiedRequest = await this.interceptHandler('request', request, response)
       if (!(modifiedRequest instanceof Request)) {
-        this.emit('error', 'Expected Request instance, found this one instead')
-        res.writeHead(500, { })
+        this.emit('error', new ProxyError(`Expecting a Request object, but received ${typeof modifiedRequest} instead`, ErrorType.unexpectedType))
+        res.writeHead(HttpStatusCode.BAD_REQUEST, { })
         res.end()
         return
       }
@@ -60,7 +60,7 @@ export default class HttpServer extends EventEmitter {
       req.on('end', () => forwardRequest.end())
     })
 
-    httpServer.on('error', (error: any) => this.emit('error', error))
+    httpServer.on('error', (error: any) => this.emit('error', new ProxyError(error, ErrorType.unknown, error)))
 
     return httpServer
   }

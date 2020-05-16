@@ -6,7 +6,6 @@ import * as tls from 'tls'
 
 import CertificateHandler from './certificateHandler'
 import { CertAuthority } from './models'
-import Server from './server'
 
 type CertificateCreationCallback = (error: any | null, secureContext: tls.SecureContext) => void
 
@@ -72,7 +71,7 @@ export default class HttpsServer extends EventEmitter {
       let addr = this.server.address() as net.AddressInfo
       // Creates TCP connection to HTTPS server
       let serverSocket = net.connect(addr.port, addr.address, () => {
-        const successConnection = new Buffer(`HTTP/${request.httpVersion} 200 Connection Established\r\n\r\n`, 'utf-8')
+        const successConnection = Buffer.from(`HTTP/${request.httpVersion} 200 Connection Established\r\n\r\n`, 'utf-8')
         // Tell the client (the HTTP server) that the connection was successfully established
         clientSocket.write(successConnection)
         clientSocket

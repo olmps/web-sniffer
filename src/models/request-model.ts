@@ -1,6 +1,7 @@
 import { IncomingHttpHeaders } from "http"
 
 export default class RequestModel {
+  httpVersion: string
   headers: Map<string, string>
   body: string
 
@@ -12,7 +13,8 @@ export default class RequestModel {
     return formattedHeaders
   }
 
-  constructor(headers: IncomingHttpHeaders = { }, body: string = '') {
+  constructor(httpVersion: string = '', headers: IncomingHttpHeaders = { }, body: string = '') {
+    this.httpVersion = httpVersion
     this.headers = this.formattedHeaders(headers)
     this.body = body
   }

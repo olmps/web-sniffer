@@ -3,6 +3,7 @@ import { EventEmitter } from 'events'
 import HttpServer from './httpServer'
 import HttpsServer from './httpsServer'
 import { ProxyOptions, IRequest, IResponse } from './models'
+import ProxyError from './errors/proxy-error'
 
 interface InterceptOptions { phase: Phase }
 type Phase = 'request' | 'response'
@@ -12,8 +13,8 @@ type InterceptHandler = (request: IRequest, response: IResponse) => Promise<AnyC
 
 export default class Proxy extends EventEmitter {
 
-  httpServer: HttpServer // HttpProxy
-  httpsServer?: HttpsServer // HttpsProxy
+  httpServer: HttpServer
+  httpsServer?: HttpsServer
   interceptors: Map<string, InterceptHandler>
   options: ProxyOptions
 
@@ -29,8 +30,8 @@ export default class Proxy extends EventEmitter {
   }
 
   private forwardEvents() {
-    this.httpServer.on('error', (error: any) => this.emit(error))
-    this.httpsServer?.on('error', (error: any) => this.emit(error))
+    this.httpServer.on('error', (error: ProxyError) => this.emit('error', error))
+    this.httpsServer?.on('error', (error: ProxyError) => this.emit('error', error))
   }
 
   async onIntercept(phase: string, request: IRequest, response: IResponse): Promise<IRequest | IResponse> {
@@ -39,6 +40,7 @@ export default class Proxy extends EventEmitter {
       const content = phase === 'request' ? request : response
       return Promise.resolve(content)
     }
+    
     const modifiedContent = await handler(request, response)
     return Promise.resolve(modifiedContent)
   }
