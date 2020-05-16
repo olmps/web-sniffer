@@ -1,3 +1,7 @@
+import { IncomingHttpHeaders, IncomingMessage } from "http"
+import * as url from 'url'
+import RequestModel from "./request-model"
+
 export interface IRequest {
   protocol: string
   hostname: string
@@ -10,28 +14,20 @@ export interface IRequest {
   [key: string]: any
 }
 
-export class Request implements IRequest {
-  protocol: string
-  hostname: string
-  port: number
+export class Request extends RequestModel implements IRequest {
   method: string
   url: string
   query: any
-  headers: Map<string, string>
-  body: string
 
-  get fullUrl(): string {
-    return `${this.protocol}//${this.hostname}${this.url}`
-  }
+  get fullUrl(): string { return `${this.protocol}//${this.hostname}${this.url}` }
+  get protocol(): string { return url.parse(this.url).protocol! }
+  get hostname(): string { return url.parse(this.url).hostname! }
+  get port(): number { return Number(url.parse(this.url).port) }
 
-  constructor(protocol: string, hostname: string, port: number, method: string, url: string, query: any, headers: Map<string, string>, body: string) {
-    this.protocol = protocol
-    this.hostname = hostname
-    this.port = port
-    this.method = method
-    this.url = url
-    this.query = query
-    this.headers = headers
-    this.body = body
+  constructor(httpRequest: IncomingMessage) {
+    super(httpRequest.headers)
+    this.method = httpRequest.method!
+    this.url = httpRequest.url!
+    this.query = url.parse(httpRequest.url!, true)
   }
 }
