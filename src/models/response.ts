@@ -17,7 +17,10 @@ export class Response extends RequestModel implements IResponse {
   }
 
   populate(httpResponse: IncomingMessage) {
-    this.statusCode = httpResponse.statusCode!
-    this.headers = this.formattedHeaders(httpResponse.headers)
+    const { headers, statusCode, httpVersion } = httpResponse
+
+    this.statusCode = statusCode!
+    this.headers = this.formattedHeaders(headers)
+    this.httpVersion = httpVersion
   }
 }

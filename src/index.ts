@@ -17,3 +17,5 @@ proxy.intercept({ phase: 'request' }, (request, response) => {
 proxy.intercept({ phase: 'response' }, (request, response) => {
   return Promise.resolve(response)
 })
+
+proxy.on('error', (error: any) => console.log("DEU ERRO " + error))
