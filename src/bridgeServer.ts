@@ -41,14 +41,12 @@ export default class BridgeServer extends EventEmitter {
       const forwardRequest = http.request(requestTarget, (httpServerResponse) => {
         res.writeHead(httpServerResponse.statusCode!, httpServerResponse.headers)
         httpServerResponse.pipe(res)
-        forwardRequest.end()
       })
 
-      forwardRequest.on('error', (err) => this.emit('error', err))
       req.pipe(forwardRequest)
+      forwardRequest.on('error', (err) => this.emit('error', err))
     })
-    bridgeServer.on('error', (err) => this.emit('error', err))
-
+    
     return bridgeServer
   }
 
@@ -72,6 +70,7 @@ export default class BridgeServer extends EventEmitter {
       })
 
       serverSocket.on('error', (err) => this.emit('error', err))
+      clientSocket.on('error', () => {}) // Ignore ECONNRESET ERRORS THAT ARE HANDLED BY THE ABOVE HTTP PROXY
     })
   }
 
