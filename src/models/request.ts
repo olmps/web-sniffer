@@ -1,35 +1,38 @@
-import { IncomingMessage } from "http"
 import * as url from 'url'
+import { IncomingMessage } from "http"
+import { Socket } from 'net'
 import RequestModel from "./request-model"
 
 export interface IRequest {
   protocol: string
   hostname: string
-  port: number
   method: string
   url: string
   query: any
-  headers: Map<string, string>
+  headers: Record<string, string>
   body: string
+  
+  socket: Socket
   [key: string]: any
 }
 
 export class Request extends RequestModel implements IRequest {
+  protocol: string
   method: string
   url: string
   query: any
 
   get fullUrl(): string { return `${this.protocol}//${this.hostname}${this.url}` }
-  get protocol(): string { return url.parse(this.url).protocol! }
-  get hostname(): string { return url.parse(this.url).hostname! }
-  get port(): number { return Number(url.parse(this.url).port) }
+  get hostname(): string { return this.headers.host }
 
-  constructor(httpRequest: IncomingMessage) {
-    const { httpVersion, headers, method, url: requestUrl } = httpRequest
+  constructor(httpRequest: IncomingMessage, protocol: string) {
+    const { method, url: requestUrl, socket } = httpRequest
 
-    super(httpVersion, headers)
+    super(httpRequest)
+    this.protocol = protocol
     this.method = method!
     this.url = requestUrl!
-    this.query = url.parse(requestUrl!, true)
+    this.query = url.parse(requestUrl!, true).query
+    this.socket = socket
   }
 }

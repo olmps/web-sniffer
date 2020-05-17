@@ -1,10 +1,13 @@
 import { IncomingMessage } from "http"
+import { Socket } from 'net'
 import RequestModel from "./request-model"
 
 export interface IResponse {
   statusCode: number
-  headers: Map<string, string>
+  headers: Record<string, string>
   body: string
+
+  socket: Socket
   [key: string]: any
 }
 
@@ -17,10 +20,11 @@ export class Response extends RequestModel implements IResponse {
   }
 
   populate(httpResponse: IncomingMessage) {
-    const { headers, statusCode, httpVersion } = httpResponse
+    const { headers, statusCode, httpVersion, socket } = httpResponse
 
     this.statusCode = statusCode!
     this.headers = this.formattedHeaders(headers)
     this.httpVersion = httpVersion
+    this.socket = socket
   }
 }
