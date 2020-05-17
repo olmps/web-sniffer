@@ -8,6 +8,8 @@ type RouterCallback = (response: http.IncomingMessage) => void
 export default class Router {
 
   static forward(request: Request, callback: RouterCallback) {
+    delete request.headers['accept-encoding']
+
     const requestOptions: http.RequestOptions = {
       host: request.hostname,
       port: request.protocol === 'https:' ? 443 : 80,

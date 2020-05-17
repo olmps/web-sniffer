@@ -19,7 +19,6 @@ export default class RequestModel {
     for (const key of Object.keys(headers)) {
       const value = headers[key]
       if (value === undefined) { continue }
-      if (value.includes('gzip')) { continue } // TODO: HANDLE GZIP
       if (typeof value === 'string') {
         headersDictionary[key] = value
       } else { // TODO: TEST SET-COOKIE CASE
