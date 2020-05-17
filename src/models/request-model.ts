@@ -1,33 +1,29 @@
-import { IncomingHttpHeaders } from "http"
+import { IncomingMessage, IncomingHttpHeaders } from "http"
+import { Socket } from 'net'
 
 export default class RequestModel {
   httpVersion: string
-  headers: Map<string, string>
+  headers: Record<string, string>
   body: string
+  socket: Socket
 
-  get httpHeaders(): IncomingHttpHeaders {
-    const formattedHeaders: any = { }
-    this.headers.forEach((value, key) => {
-      formattedHeaders[key] = value
-    })
-    return formattedHeaders
+  constructor(incomingMessage: IncomingMessage | undefined = undefined) {
+    this.httpVersion = incomingMessage?.httpVersion ?? ""
+    this.headers = this.formattedHeaders(incomingMessage?.headers ?? { })
+    this.body = ''
+    this.socket = incomingMessage?.socket ?? { } as Socket
   }
 
-  constructor(httpVersion: string = '', headers: IncomingHttpHeaders = { }, body: string = '') {
-    this.httpVersion = httpVersion
-    this.headers = this.formattedHeaders(headers)
-    this.body = body
-  }
-
-  protected formattedHeaders(headers: IncomingHttpHeaders): Map<string, string> {
-    const headersDictionary = new Map<string, string>()
+  protected formattedHeaders(headers: IncomingHttpHeaders): Record<string, string> {
+    const headersDictionary: Record<string, string> = { }
     for (const key of Object.keys(headers)) {
       const value = headers[key]
       if (value === undefined) { continue }
+      if (value.includes('gzip')) { continue } // TODO: HANDLE GZIP
       if (typeof value === 'string') {
-        headersDictionary.set(key, value)
+        headersDictionary[key] = value
       } else { // TODO: TEST SET-COOKIE CASE
-        headersDictionary.set(key, value.toString())
+        headersDictionary[key] = value.toString()
       }
     }
 
