@@ -1,6 +1,5 @@
 import * as url from 'url'
 import { IncomingMessage } from "http"
-import { Socket } from 'net'
 import RequestModel from "./request-model"
 
 export interface IRequest {
@@ -11,8 +10,7 @@ export interface IRequest {
   query: any
   headers: Record<string, string>
   body: string
-  
-  socket: Socket
+  remoteAddress: string
   [key: string]: any
 }
 
@@ -33,6 +31,6 @@ export class Request extends RequestModel implements IRequest {
     this.method = method!
     this.url = requestUrl!
     this.query = url.parse(requestUrl!, true).query
-    this.socket = socket
+    this.remoteAddress = socket.remoteAddress ?? ""
   }
 }

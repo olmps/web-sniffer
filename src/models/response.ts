@@ -1,13 +1,11 @@
 import { IncomingMessage } from "http"
-import { Socket } from 'net'
 import RequestModel from "./request-model"
 
 export interface IResponse {
   statusCode: number
   headers: Record<string, string>
   body: string
-
-  socket: Socket
+  remoteAddress: string
   [key: string]: any
 }
 
@@ -25,6 +23,6 @@ export class Response extends RequestModel implements IResponse {
     this.statusCode = statusCode!
     this.headers = this.formattedHeaders(headers)
     this.httpVersion = httpVersion
-    this.socket = socket
+    this.remoteAddress = socket.remoteAddress ?? ""
   }
 }
