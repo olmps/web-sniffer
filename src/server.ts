@@ -80,7 +80,7 @@ export default class Server extends EventEmitter {
     let responseBody: Buffer
 
     try {
-      responseBody = await this.collectMessageBody(serverResponse)
+      responseBody = await this.collectMessageBody(responseContent)
       response.body = responseBody.toString('utf-8')
       delete response.headers["content-encoding"]
     } catch (error) {
@@ -102,7 +102,7 @@ export default class Server extends EventEmitter {
     proxyResponse.end()
   }
 
-  private collectMessageBody(incomingMessage: http.IncomingMessage): Promise<Buffer> {
+  private collectMessageBody(incomingMessage: http.IncomingMessage | zlib.Gunzip): Promise<Buffer> {
     return new Promise<Buffer>((resolve, reject) => {
       let bodyBuffers: Buffer[] = []
 
