@@ -8,6 +8,11 @@ import { IRequest, IResponse, CertAuthority } from "./models";
 
 type AnyContent = IRequest | IResponse
 type InterceptHandler = (phase: string, request: IRequest, response: IResponse) => Promise<AnyContent>
+interface PortOptions {
+  bridgePort: number
+  httpPort?: number
+  httpsPort?: number
+}
 
 export default class BridgeServer extends EventEmitter {
   bridgeServer: http.Server
@@ -74,11 +79,16 @@ export default class BridgeServer extends EventEmitter {
     })
   }
 
-  listen(port: number) {
-    this.bridgeServer.listen(port)
-    // TODO: SEND PORTSS AS PARAMETERS
-    this.httpServer.listen(8081)
-    this.httpsServer?.listen(8082)
+  listen(port: number | PortOptions) {
+    if (typeof port === 'number') {
+      this.bridgeServer.listen(port)
+      this.httpServer.listen(0)
+      this.httpsServer?.listen(0)
+    } else {
+      this.bridgeServer.listen(port.bridgePort)
+      this.httpServer.listen(port.httpPort ?? 0)
+      this.httpsServer?.listen(port.httpsPort ?? 0)
+    }
   }
 
   close() {

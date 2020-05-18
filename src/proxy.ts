@@ -8,6 +8,11 @@ type Phase = 'request' | 'response'
 
 type AnyContent = IRequest | IResponse
 type InterceptHandler = (request: IRequest, response: IResponse) => Promise<AnyContent>
+interface PortOptions {
+  bridgePort: number
+  httpPort?: number
+  httpsPort?: number
+}
 
 export default class Proxy extends EventEmitter {
 
@@ -37,7 +42,7 @@ export default class Proxy extends EventEmitter {
     this.interceptors.set(options.phase, handler)
   }
 
-  listen(port: number) {
+  listen(port: number | PortOptions) {
     this.bridgeServer.listen(port)
   }
 
