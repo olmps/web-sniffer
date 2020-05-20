@@ -1,13 +1,13 @@
 import http from 'http'
 import https from 'https'
 import ProxyError, { ErrorType } from './errors/proxy-error'
-import { Request } from './models'
+import { IRequest } from './models'
 
 type RouterCallback = (response: http.IncomingMessage) => void
 
 export default class Router {
 
-  static forward(request: Request, callback: RouterCallback) {
+  static forward(request: IRequest, callback: RouterCallback) {
     delete request.headers['accept-encoding']
 
     const requestOptions: http.RequestOptions = {

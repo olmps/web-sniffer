@@ -23,18 +23,16 @@ export default class Server extends EventEmitter {
     const request = new Request(req, protocol)
     // At this request phase, `res` is not populated yet
     const response = new Response()
-    let modifiedRequest: AnyContent
-
-    let requestBody: Buffer
 
     try {
-      requestBody = await this.collectMessageBody(req)
-      request.body = requestBody.toString('utf-8')
+      request.body = await this.collectMessageBody(req)
       delete request.headers["content-encoding"]
     } catch (error) {
       req.destroy(new ProxyError('Error while fetching request body', ErrorType.unknown, error))
       return
     }
+
+    let modifiedRequest: IRequest
 
     try {
       // Send the intercepted request to the client before forwarding to its destination
@@ -45,10 +43,10 @@ export default class Server extends EventEmitter {
     }
 
     const responseHandler = async (serverResponse: http.IncomingMessage) => this.receiveResponse(request, response, serverResponse, res)
-    const forwardedRequest = Router.forward(request, responseHandler)
+    const forwardedRequest = Router.forward(modifiedRequest, responseHandler)
     forwardedRequest.on('error', error => this.emit('error', error))
 
-    forwardedRequest.write(requestBody)
+    forwardedRequest.write(modifiedRequest.body)
     forwardedRequest.end()
   }
 
@@ -77,18 +75,15 @@ export default class Server extends EventEmitter {
       serverResponse.pipe(responseContent)
     }
 
-    let responseBody: Buffer
-
     try {
-      responseBody = await this.collectMessageBody(responseContent)
-      response.body = responseBody.toString('utf-8')
+      response.body = await this.collectMessageBody(responseContent)
       delete response.headers["content-encoding"]
     } catch (error) {
       proxyResponse.destroy(new ProxyError('Error while fetching response body', ErrorType.unknown, error))
       return
     }
 
-    let modifiedResponse: AnyContent
+    let modifiedResponse: IResponse
 
     try {
       modifiedResponse = await this.interceptHandler('response', request, response) as IResponse
@@ -97,8 +92,8 @@ export default class Server extends EventEmitter {
       return
     }
     
-    proxyResponse.writeHead(modifiedResponse.statusCode, modifiedResponse.httpHeaders)
-    proxyResponse.write(responseBody)
+    proxyResponse.writeHead(modifiedResponse.statusCode, modifiedResponse.headers)
+    proxyResponse.write(modifiedResponse.body)
     proxyResponse.end()
   }
 

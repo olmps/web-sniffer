@@ -9,7 +9,7 @@ export interface IRequest {
   url: string
   query: any
   headers: Record<string, string>
-  body: string
+  body: Buffer
   remoteAddress: string
   [key: string]: any
 }

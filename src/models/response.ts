@@ -4,7 +4,7 @@ import RequestModel from "./request-model"
 export interface IResponse {
   statusCode: number
   headers: Record<string, string>
-  body: string
+  body: Buffer
   remoteAddress: string
   [key: string]: any
 }
