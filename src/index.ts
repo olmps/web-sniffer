@@ -1,21 +1,6 @@
-import * as fs from 'fs'
-import Proxy from './proxy'
 import { ProxyOptions } from './models'
+import { Proxy } from './proxy'
 
-const cert = fs.readFileSync(`./src/proxy-cert.crt.pem`)
-const key = fs.readFileSync(`./src/proxy-cert-key.key.pem`)
-
-const options = new ProxyOptions({ cert, key })
-
-const proxy = new Proxy(options)
-proxy.listen(8888)
-
-proxy.intercept({ phase: 'request' }, (request, response) => {
-  return Promise.resolve(request)
-})
-
-proxy.intercept({ phase: 'response' }, (request, response) => {
-  return Promise.resolve(response)
-})
-
-proxy.on('error', (error: any) => console.log("DEU ERRO " + error))
+export { IRequest, IResponse, CertAuthority, ProxyOptions } from './models'
+export { Proxy }
+export function createServer(options: ProxyOptions) { return new Proxy(options) }
