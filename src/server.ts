@@ -9,7 +9,6 @@ import Router from './router'
 type AnyContent = IRequest | IResponse
 type InterceptHandler = (phase: string, request: IRequest, response: IResponse) => Promise<AnyContent>
 
-// TODO: COMMON BEHAVIOR BETWEEN BOTH SERVERS
 export default class Server extends EventEmitter {
 
   private interceptHandler: InterceptHandler
