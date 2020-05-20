@@ -3,13 +3,16 @@ import { IncomingMessage, IncomingHttpHeaders } from "http"
 export default class RequestModel {
   httpVersion: string
   headers: Record<string, string>
-  body: string
   remoteAddress: string
+
+  body: Buffer
+  get stringBody(): string { return this.body.toString('utf-8') }
+  set stringBody(newBody: string) { this.body = new Buffer(newBody, 'utf-8') }
 
   constructor(incomingMessage: IncomingMessage | undefined = undefined) {
     this.httpVersion = incomingMessage?.httpVersion ?? ""
     this.headers = this.formattedHeaders(incomingMessage?.headers ?? { })
-    this.body = ''
+    this.body = new Buffer('')
     this.remoteAddress = ''
   }
 
