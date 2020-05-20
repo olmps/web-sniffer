@@ -12,7 +12,7 @@ export default class RequestModel {
   constructor(incomingMessage: IncomingMessage | undefined = undefined) {
     this.httpVersion = incomingMessage?.httpVersion ?? ""
     this.headers = this.formattedHeaders(incomingMessage?.headers ?? { })
-    this.body = new Buffer('')
+    this.body = Buffer.from('')
     this.remoteAddress = ''
   }
 

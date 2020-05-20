@@ -1,13 +1,14 @@
 {
-  "name": "proxier",
+  "name": "web-proxy-sniffer",
   "version": "1.0.0",
-  "description": "TODO",
+  "description": "A simple and clean web-traffic proxy sniffer",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsc && node dist/index.js"
   },
-  "author": "",
+  "author": "Olympus Software",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^13.13.5",
