@@ -14,7 +14,7 @@ interface PortOptions {
   httpsPort?: number
 }
 
-export default class Proxy extends EventEmitter {
+export class Proxy extends EventEmitter {
 
   private bridgeServer: BridgeServer
   private interceptors: Map<string, InterceptHandler>

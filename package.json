@@ -1,6 +1,6 @@
 {
   "name": "web-proxy-sniffer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple and clean web-traffic proxy sniffer",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
