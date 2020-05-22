@@ -11,6 +11,7 @@ export interface IRequest {
   headers: Record<string, string>
   body: Buffer
   remoteAddress: string
+  size: number
   [key: string]: any
 }
 

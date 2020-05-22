@@ -6,6 +6,7 @@ export interface IResponse {
   headers: Record<string, string>
   body: Buffer
   remoteAddress: string
+  size: number
   [key: string]: any
 }
 
@@ -24,5 +25,6 @@ export class Response extends RequestModel implements IResponse {
     this.headers = this.formattedHeaders(headers)
     this.httpVersion = httpVersion
     this.remoteAddress = socket.remoteAddress ?? ""
+    this.size = this.calculateSize(httpResponse)
   }
 }
