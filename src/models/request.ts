@@ -30,7 +30,7 @@ export class Request extends RequestModel implements IRequest {
     super(httpRequest)
     this.protocol = protocol
     this.method = method!
-    this.url = requestUrl!
+    this.url = url.parse(requestUrl!).path ?? ""
     this.query = url.parse(requestUrl!, true).query
     this.remoteAddress = socket.remoteAddress ?? ""
   }
