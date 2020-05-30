@@ -26,7 +26,6 @@ export default class CertificateHandler {
   private createCertificate(serverName: string, callback: CertificateCreationCallback) {
     const certificateHandler = (error: any, result: any) => {
       if (error) {
-        console.log(error)
         callback(error, { context: {} }) // TODO; REFACTOR THIS RETURN
         return
       }

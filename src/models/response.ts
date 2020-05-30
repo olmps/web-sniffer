@@ -1,9 +1,9 @@
 import { IncomingMessage } from "http"
-import RequestModel from "./request-model"
+import RequestModel, { HeaderValue } from "./request-model"
 
 export interface IResponse {
   statusCode: number
-  headers: Record<string, string>
+  headers: Record<string, HeaderValue>
   body: Buffer
   remoteAddress: string
   size: number

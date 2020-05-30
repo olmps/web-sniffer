@@ -1,6 +1,9 @@
 export enum ErrorType {
-  unexpectedType = "Unexpected Type",
-  denied = "Denied Content",
+  // Hostname could not be resolved on destination IP address
+  invalidHostname = "ENOTFOUND",
+  // Connection abruptly closed.
+  connectionReset = "ECONNRESET",
+  inconsistency = "Inconsistency Error",
   unknown = "Unknown Error"
 }
 
@@ -11,8 +14,9 @@ export default class ProxyError extends Error {
   get code(): number {
     switch (this.type) {
       case ErrorType.unknown: return 0
-      case ErrorType.unexpectedType: return 1
-      case ErrorType.denied: return 2
+      case ErrorType.inconsistency: return 1
+      case ErrorType.connectionReset: return 2
+      case ErrorType.invalidHostname: return 3
     }
   }
 
@@ -20,5 +24,20 @@ export default class ProxyError extends Error {
     super(message)
     this.type = type
     this.original = original
+  }
+
+  static from(error: any) {
+    switch (error.code) {
+      case 'ENOTFOUND': {
+        const hostname: string = error.hostname
+        const message = `Failed to resolve ${hostname} ip address`
+        return new ProxyError(message, ErrorType.invalidHostname, error)
+      }
+      case 'ECONNRESET': {
+        const message = `Connection was abruptly closed`
+        return new ProxyError(message, ErrorType.connectionReset, error)
+      }
+      default: return new ProxyError(`Unknown error`, ErrorType.unknown, error)
+    }
   }
 }

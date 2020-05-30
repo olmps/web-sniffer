@@ -1,8 +1,10 @@
 import { IncomingMessage, IncomingHttpHeaders } from "http"
 
+export type HeaderValue = string | string[]
+
 export default class RequestModel {
   httpVersion: string
-  headers: Record<string, string>
+  headers: Record<string, HeaderValue>
   remoteAddress: string
   size: number
 
@@ -18,16 +20,12 @@ export default class RequestModel {
     this.size = incomingMessage ? this.calculateSize(incomingMessage) : 0
   }
 
-  protected formattedHeaders(headers: IncomingHttpHeaders): Record<string, string> {
-    const headersDictionary: Record<string, string> = { }
+  protected formattedHeaders(headers: IncomingHttpHeaders): Record<string, HeaderValue> {
+    const headersDictionary: Record<string, HeaderValue> = { }
     for (const key of Object.keys(headers)) {
       const value = headers[key]
       if (value === undefined) { continue }
-      if (typeof value === 'string') {
-        headersDictionary[key] = value
-      } else { // TODO: TEST SET-COOKIE CASE
-        headersDictionary[key] = value.toString()
-      }
+      headersDictionary[key] = value
     }
 
     return headersDictionary

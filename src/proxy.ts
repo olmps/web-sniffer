@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events'
 
 import { ProxyOptions, IRequest, IResponse } from './models'
+import { ProxyError } from './errors'
 import BridgeServer from './bridgeServer'
 
 interface InterceptOptions { phase: Phase }
@@ -24,7 +25,19 @@ export class Proxy extends EventEmitter {
     this.interceptors = new Map<string, InterceptHandler>()
     const interceptHandler = (phase: string, request: IRequest, response: IResponse) => this.onIntercept(phase, request, response)
     this.bridgeServer = new BridgeServer(interceptHandler, options.certAuthority)
-    this.bridgeServer.on('error', (error: any) => this.emit('error', error))
+    this.setupErrorHandling()
+  }
+
+  private setupErrorHandling() {
+    this.bridgeServer.on('error', (error: any) => {
+      if (error instanceof ProxyError) {
+        this.emit('error', error)
+        return
+      }
+
+      const proxyError = ProxyError.from(error)
+      this.emit('error', proxyError)
+    })
   }
 
   async onIntercept(phase: string, request: IRequest, response: IResponse): Promise<IRequest | IResponse> {
