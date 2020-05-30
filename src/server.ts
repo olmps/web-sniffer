@@ -37,7 +37,7 @@ export default class Server extends EventEmitter {
       // Send the intercepted request to the client before forwarding to its destination
       modifiedRequest = await this.interceptHandler('request', request, response) as IRequest
     } catch (error) {
-      req.destroy(new ProxyError('Request dropped by the client', ErrorType.denied, error))
+      req.destroy()
       return
     }
 
@@ -78,7 +78,7 @@ export default class Server extends EventEmitter {
       response.body = await this.collectMessageBody(responseContent)
       delete response.headers["content-encoding"]
     } catch (error) {
-      proxyResponse.destroy(new ProxyError('Error while fetching response body', ErrorType.unknown, error))
+      proxyResponse.destroy(new ProxyError('Error while fetching response body', ErrorType.inconsistency, error))
       return
     }
 
@@ -87,7 +87,7 @@ export default class Server extends EventEmitter {
     try {
       modifiedResponse = await this.interceptHandler('response', request, response) as IResponse
     } catch (error) {
-      proxyResponse.destroy(new ProxyError('Response dropped by the client', ErrorType.denied, error))
+      proxyResponse.destroy()
       return
     }
     

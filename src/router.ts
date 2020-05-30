@@ -24,7 +24,7 @@ export default class Router {
       default:  
       throw new ProxyError(
         `Unknown protocol ${request.protocol} received by the Router`,
-        ErrorType.unexpectedType
+        ErrorType.inconsistency
       )
     }
   }

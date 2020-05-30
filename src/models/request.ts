@@ -1,6 +1,6 @@
 import * as url from 'url'
 import { IncomingMessage } from "http"
-import RequestModel from "./request-model"
+import RequestModel, { HeaderValue } from "./request-model"
 
 export interface IRequest {
   protocol: string
@@ -8,7 +8,7 @@ export interface IRequest {
   method: string
   url: string
   query: any
-  headers: Record<string, string>
+  headers: Record<string, HeaderValue>
   body: Buffer
   remoteAddress: string
   size: number
@@ -22,7 +22,10 @@ export class Request extends RequestModel implements IRequest {
   query: any
 
   get fullUrl(): string { return `${this.protocol}//${this.hostname}${this.url}` }
-  get hostname(): string { return this.headers.host }
+  get hostname(): string {
+    const hostHeader = this.headers.host as string
+    return hostHeader
+  }
 
   constructor(httpRequest: IncomingMessage, protocol: string) {
     const { method, url: requestUrl, socket } = httpRequest
