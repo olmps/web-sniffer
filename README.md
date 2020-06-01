@@ -1,10 +1,20 @@
 # Web Sniffer
 
-A simple and clean web-traffic proxy sniffer inspired by the no longer maintained [Hoxy]([Hoxy](https://github.com/greim/hoxy)) written in `typescript`
+A simple and clean web-traffic proxy sniffer written in `typescript`. Inspired by the no longer maintained [Hoxy](https://github.com/greim/hoxy)
 
-# How to Use
+# Install
+
+`npm install --save web-proxy-sniffer`
+
+# Contributing
+
+Please see [CONTRIBUTING.md](/CONTRIBUTING.md) to see how to help us maintain and evolve this project.
+
+# Examples
 ```typescript
-const proxy = new SnifferProxy()
+import * as Sniffer from 'web-proxy-sniffer'
+
+const proxy = Sniffer.createServer()
 
 proxy.intercept({
   // Intercept before the request is sent
@@ -15,11 +25,14 @@ proxy.intercept({
 
   return request
 })
+
+proxy.listen(8080)
 ```
 
 ## Intercepting HTTPS requests
 
 In order to support HTTPS requests intercept, it's required to provide a valid self-signed Certificate Authority when initializing the proxy.
+To create a new certificate run on your terminal:
 
 ```bash
 # Create the key
@@ -31,19 +44,19 @@ openssl req -x509 -new -nodes -key ~/.ssh/my-private-root-ca.key.pem -days 1024 
 After that, you need to trust this certificate. How to do this varies depending on your environment. If your are using a browser, you must trust the certificate on the browser,
 if you are using the proxy on a OS level, you must trust the certificate on your machine.
 
-After trusting the certificate, you must send this certificate and its key to the proxy like:
+After trusting the certificate, you must send this certificate and its key when initializing the proxy:
 
 ```typescript
 import * as fs from 'fs'
+import * as Sniffer from 'web-proxy-sniffer'
 
-const proxy = new Proxy({
+const proxy = Sniffer.createServer({
   certAuthority: {
     key: fs.readFileSync(`src/resources/certificates/proxy-cert-key.key.pem`),
     cert: fs.readFileSync(`src/resources/certificates/proxy-cert.crt.pem`)
   }
 })
 ```
-
 
 # Roadmap
 
