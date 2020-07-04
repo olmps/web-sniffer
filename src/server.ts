@@ -69,7 +69,7 @@ export default class Server extends EventEmitter {
     let responseContent: http.IncomingMessage | Decoder = serverResponse
 
     if (contentEncoding && contentEncoding.toLowerCase().includes("gzip")) {
-      const gunzip = zlib.createUnzip()
+      const gunzip = zlib.createGunzip()
       serverResponse.pipe(gunzip)
       responseContent = gunzip
       delete response.headers["content-encoding"]
