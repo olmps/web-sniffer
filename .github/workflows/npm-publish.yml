@@ -1,0 +1,25 @@
+name: npm-publish
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  npm-publish:
+    name: npm-publish
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@master
+    - name: Set up Node.js
+      uses: actions/setup-node@master
+      with:
+        always-auth: true
+        node-version: 12.18.2
+        registry-url: https://registry.npmjs.org/
+    - name: Install dependencies
+      run: npm install --ignore-scripts
+    - name: Publish the package
+      run: npm run publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

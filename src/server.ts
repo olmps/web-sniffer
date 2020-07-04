@@ -6,6 +6,7 @@ import { IRequest, IResponse, Request, Response } from './models'
 import ProxyError, { ErrorType } from './errors/proxy-error'
 import Router from './router'
 
+type Decoder = zlib.Gunzip | zlib.Inflate | zlib.BrotliDecompress
 type AnyContent = IRequest | IResponse
 type InterceptHandler = (phase: string, request: IRequest, response: IResponse) => Promise<AnyContent>
 
@@ -25,8 +26,8 @@ export default class Server extends EventEmitter {
 
     try {
       request.body = await this.collectMessageBody(req)
-      delete request.headers["content-encoding"]
     } catch (error) {
+      console.log(error)
       req.destroy(new ProxyError('Error while fetching request body', ErrorType.unknown, error))
       return
     }
@@ -37,6 +38,7 @@ export default class Server extends EventEmitter {
       // Send the intercepted request to the client before forwarding to its destination
       modifiedRequest = await this.interceptHandler('request', request, response) as IRequest
     } catch (error) {
+      console.log(error)
       req.destroy()
       return
     }
@@ -64,20 +66,30 @@ export default class Server extends EventEmitter {
     response.populate(serverResponse)
 
     const contentEncoding = serverResponse.headers["content-encoding"]
-    let responseContent: http.IncomingMessage | zlib.Gunzip = serverResponse
+    let responseContent: http.IncomingMessage | Decoder = serverResponse
 
-    if (contentEncoding && contentEncoding.toLowerCase() === "gzip") {
-      responseContent = zlib.createGunzip()
-      serverResponse.pipe(responseContent)
-    } else if (contentEncoding && contentEncoding.toLowerCase() === "deflate") {
-      responseContent = zlib.createDeflate()
-      serverResponse.pipe(responseContent)
+    if (contentEncoding && contentEncoding.toLowerCase().includes("gzip")) {
+      const gunzip = zlib.createGunzip()
+      serverResponse.pipe(gunzip)
+      responseContent = gunzip
+      delete response.headers["content-encoding"]
+    } else if (contentEncoding && contentEncoding.toLowerCase().includes("deflate")) {
+      const deflate = zlib.createInflate()
+      serverResponse.pipe(deflate)
+      responseContent = deflate
+      delete response.headers["content-encoding"]
+    } else if (contentEncoding && contentEncoding.toLowerCase().includes("br")) {
+      const brotli = zlib.createBrotliDecompress()
+      serverResponse.pipe(brotli)
+      responseContent = brotli
+      delete response.headers["content-encoding"]
     }
 
     try {
       response.body = await this.collectMessageBody(responseContent)
-      delete response.headers["content-encoding"]
+      if (contentEncoding) { response.headers['content-length'] = response.body.byteLength.toString() }
     } catch (error) {
+      console.log(error)
       proxyResponse.destroy(new ProxyError('Error while fetching response body', ErrorType.inconsistency, error))
       return
     }
@@ -87,6 +99,7 @@ export default class Server extends EventEmitter {
     try {
       modifiedResponse = await this.interceptHandler('response', request, response) as IResponse
     } catch (error) {
+      console.log(error)
       proxyResponse.destroy()
       return
     }
@@ -96,7 +109,7 @@ export default class Server extends EventEmitter {
     proxyResponse.end()
   }
 
-  private collectMessageBody(incomingMessage: http.IncomingMessage | zlib.Gunzip): Promise<Buffer> {
+  private collectMessageBody(incomingMessage: http.IncomingMessage | Decoder): Promise<Buffer> {
     return new Promise<Buffer>((resolve, reject) => {
       let bodyBuffers: Buffer[] = []
 
